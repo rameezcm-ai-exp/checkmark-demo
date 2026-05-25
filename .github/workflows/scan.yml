@@ -1,0 +1,65 @@
+name: Mock Checkmarx Scan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate Checkmarx Scan Report
+        run: |
+          cat << 'EOF' > checkmarx_scan_report.json
+          {
+            "scanReport": {
+              "projectName": "checkmark-demo",
+              "scanId": "CX-MOCK-${{ github.run_id }}",
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+              "language": "JavaScript",
+              "vulnerabilities": [
+                {
+                  "id": "CX-1001",
+                  "severity": "High",
+                  "category": "SQL Injection",
+                  "file": "index.js",
+                  "line": 18,
+                  "description": "The application constructs an SQL query using unvalidated user input.",
+                  "recommendation": "Use parameterized queries or prepared statements."
+                },
+                {
+                  "id": "CX-1002",
+                  "severity": "Critical",
+                  "category": "Hardcoded Credentials",
+                  "file": "index.js",
+                  "line": 8,
+                  "description": "Database password hardcoded in source code.",
+                  "recommendation": "Store secrets securely using environment variables."
+                },
+                {
+                  "id": "CX-1003",
+                  "severity": "High",
+                  "category": "Command Injection",
+                  "file": "index.js",
+                  "line": 32,
+                  "description": "Unsanitized user input is passed directly to exec() allowing arbitrary OS commands.",
+                  "recommendation": "Use execFile or avoid executing shell commands with user input."
+                }
+              ]
+            }
+          }
+          EOF
+
+      - name: Commit and push report
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add checkmarx_scan_report.json
+          # Only commit if there are changes
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: add mock checkmarx scan report" && git push)
