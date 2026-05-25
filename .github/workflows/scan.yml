@@ -8,8 +8,6 @@ on:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -22,14 +20,14 @@ jobs:
               "projectName": "checkmark-demo",
               "scanId": "CX-MOCK-${{ github.run_id }}",
               "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-              "language": "JavaScript",
+              "language": "Java",
               "vulnerabilities": [
                 {
                   "id": "CX-1001",
                   "severity": "High",
                   "category": "SQL Injection",
-                  "file": "index.js",
-                  "line": 18,
+                  "file": "src/main/java/com/demo/VulnerableApp.java",
+                  "line": 24,
                   "description": "The application constructs an SQL query using unvalidated user input.",
                   "recommendation": "Use parameterized queries or prepared statements."
                 },
@@ -37,8 +35,8 @@ jobs:
                   "id": "CX-1002",
                   "severity": "Critical",
                   "category": "Hardcoded Credentials",
-                  "file": "index.js",
-                  "line": 8,
+                  "file": "src/main/java/com/demo/VulnerableApp.java",
+                  "line": 13,
                   "description": "Database password hardcoded in source code.",
                   "recommendation": "Store secrets securely using environment variables."
                 },
@@ -46,20 +44,18 @@ jobs:
                   "id": "CX-1003",
                   "severity": "High",
                   "category": "Command Injection",
-                  "file": "index.js",
-                  "line": 32,
-                  "description": "Unsanitized user input is passed directly to exec() allowing arbitrary OS commands.",
-                  "recommendation": "Use execFile or avoid executing shell commands with user input."
+                  "file": "src/main/java/com/demo/VulnerableApp.java",
+                  "line": 38,
+                  "description": "Unsanitized user input is passed directly to Runtime.exec() allowing arbitrary OS commands.",
+                  "recommendation": "Use ProcessBuilder and avoid executing shell commands with user input."
                 }
               ]
             }
           }
           EOF
 
-      - name: Commit and push report
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add checkmarx_scan_report.json
-          # Only commit if there are changes
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: add mock checkmarx scan report" && git push)
+      - name: Upload Scan Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkmarx-report
+          path: checkmarx_scan_report.json
