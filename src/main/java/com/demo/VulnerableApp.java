@@ -32,7 +32,7 @@ public class VulnerableApp {
     }
 
     public void ping(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String ip = request.getParameter("ip");
+        if (!ip.matches("^[0-9.]+$")) { throw new IllegalArgumentException("Invalid IP address"); }
         
         // CWE-78: OS Command Injection
         Process process = Runtime.getRuntime().exec("ping -c 4 " + ip);
