@@ -17,7 +17,7 @@ public class VulnerableApp {
         String username = Encode.forHtml(request.getParameter("username"));
         String password = Encode.forHtml(request.getParameter("password"));
         
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "root", DB_PASSWORD);
+        Connection conn = DriverManager.getConnection(System.getenv("DB_URL"), System.getenv("DB_USER"), System.getenv("DB_PASSWORD"));
         Statement stmt = conn.createStatement();
         
         // CWE-89: SQL Injection
