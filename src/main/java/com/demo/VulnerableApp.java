@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class VulnerableApp {
     // CWE-798: Hardcoded Credentials
-    private static final String DB_PASSWORD = "SuperSecretPassword123!";
+    private static final String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
     public void login(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String username = request.getParameter("username");
