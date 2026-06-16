@@ -14,7 +14,7 @@ public class VulnerableApp {
     private static final String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
     public void login(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String username = request.getParameter("username");
+        String username = Encode.forHtml(request.getParameter("username"));
         String password = request.getParameter("password");
         
         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "root", DB_PASSWORD);
