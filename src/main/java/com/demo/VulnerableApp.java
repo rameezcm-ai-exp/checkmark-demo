@@ -11,17 +11,17 @@ import javax.servlet.http.HttpServletResponse;
 
 public class VulnerableApp {
     // CWE-798: Hardcoded Credentials
-    private static final String DB_PASSWORD = "SuperSecretPassword123!";
+    private static final String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
     public void login(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
+        String username = Encode.forHtml(request.getParameter("username"));
+        String password = Encode.forHtml(request.getParameter("password"));
         
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "root", DB_PASSWORD);
+        Connection conn = DriverManager.getConnection(System.getenv("DB_URL"), System.getenv("DB_USER"), System.getenv("DB_PASSWORD"));
         Statement stmt = conn.createStatement();
         
         // CWE-89: SQL Injection
-        String query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?"); stmt.setString(1, username); stmt.setString(2, password);
         ResultSet rs = stmt.executeQuery(query);
         
         if (rs.next()) {
@@ -32,10 +32,10 @@ public class VulnerableApp {
     }
 
     public void ping(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String ip = request.getParameter("ip");
+        if (!ip.matches("^[0-9.]+$")) { throw new IllegalArgumentException("Invalid IP address"); }
         
         // CWE-78: OS Command Injection
-        Process process = Runtime.getRuntime().exec("ping -c 4 " + ip);
+        ProcessBuilder pb = new ProcessBuilder("ping", "-c", "4", ip); Process process = pb.start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
         while ((line = reader.readLine()) != null) {
