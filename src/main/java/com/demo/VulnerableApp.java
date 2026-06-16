@@ -21,7 +21,7 @@ public class VulnerableApp {
         Statement stmt = conn.createStatement();
         
         // CWE-89: SQL Injection
-        String query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?"); stmt.setString(1, username); stmt.setString(2, password);
         ResultSet rs = stmt.executeQuery(query);
         
         if (rs.next()) {
